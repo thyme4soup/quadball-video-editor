@@ -56,6 +56,7 @@ def get_corner_from_roi(y, x):
     new_x = max(min(x - w // 2, w_frame - w - 1), 0)
     return new_y, new_x
 
+# TODO: Bump up history a lot
 max_pop = 120
 centers = []
 def get_stabilized_center(cnt, frame):
