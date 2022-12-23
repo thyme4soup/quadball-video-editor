@@ -14,6 +14,8 @@ noise = PerlinNoise(octaves=6)
 # Open the video
 cap = cv2.VideoCapture(FILE)
 
+# Initialize background subtractor
+bg = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
 # Initialize frame counter
 cnt = 0
 
@@ -56,8 +58,8 @@ def get_corner_from_roi(y, x):
     new_x = max(min(x - w // 2, w_frame - w - 1), 0)
     return new_y, new_x
 
-# TODO: Bump up history a lot
-max_pop = 120
+# Define stab as last n seconds
+max_pop = 10 * fps
 centers = []
 def get_stabilized_center(cnt, frame):
     center = get_roi_center(cnt, frame)
@@ -74,10 +76,16 @@ while(cap.isOpened()):
 
     # Avoid problems when video finish
     if ret==True:
-        stab_center, actual_center = get_stabilized_center(cnt, frame)
+
+        # Perform background subtraction
+        bg_removed = bg.apply(frame)
+
+        # Get attention center
+        stab_center, actual_center = get_stabilized_center(cnt, bg_removed)
         center_x, center_y = stab_center
         y, x = get_corner_from_roi(center_y, center_x)
-        # Croping the frame
+
+        # Crop the frame using attention center
         crop_frame = frame[y:y+h, x:x+w].copy()
         # Percentage
         xx = cnt *100/frames
@@ -95,10 +103,13 @@ while(cap.isOpened()):
         cv2.imshow('cropped',crop_frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
-            print("?")
+            print("Found break key")
             break
+    elif cnt > frames * 1.5:
+        break
     else:
-        print("??")
+        cnt += 1
+        print("invalid frame?")
 
 
 cap.release()
