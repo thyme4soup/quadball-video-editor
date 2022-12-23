@@ -4,6 +4,7 @@ import cv2
 import encode_with_centers
 from PIL import Image
 from pykalman import KalmanFilter
+from vidstab.VidStab import VidStab
 
 # Testing imports
 from perlin_noise import PerlinNoise
@@ -14,8 +15,10 @@ noise = PerlinNoise(octaves=6)
 # Open the video
 cap = cv2.VideoCapture(FILE)
 
-# Initialize background subtractor
+# Initialize filters
 bg = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
+stabilizer = VidStab()
+
 # Initialize frame counter
 cnt = 0
 
@@ -76,6 +79,8 @@ while(cap.isOpened()):
 
     # Avoid problems when video finish
     if ret==True:
+        # Stabilize frame (destructive)
+        frame = stabilizer.stabilize_frame(input_frame=frame, smoothing_window=30)
 
         # Perform background subtraction
         bg_removed = bg.apply(frame)
