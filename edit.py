@@ -117,7 +117,7 @@ for index, cap in enumerate(caps):
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     print("Found break key")
                     break
-            elif cnt > frames * 1.1:
+            elif cnt > cap.get(cv2.CAP_PROP_FRAME_COUNT) * 1.1:
                 break
         cap.release()
 
